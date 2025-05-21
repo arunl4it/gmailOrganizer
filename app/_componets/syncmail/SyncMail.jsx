@@ -59,13 +59,13 @@ export default function SyncMail() {
       <div className="max-w-4xl w-full bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden p-8">
         <div className="text-center mb-8">
           <div className="mb-6 flex justify-center">
-            <div className="w-28 h-28 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center relative overflow-hidden">
+            <div className="w-28 h-28 rounded-full bg-gray-100 shadow-2xl dark:bg-gray-700 flex items-center justify-center relative overflow-hidden">
               <Image
-                src="/cloud-sync.png"
+                src="/logo.png"
                 alt="Sync Icon"
                 width={48}
                 height={48}
-                className="w-12 h-12"
+                className="w-full object-contain p-3 h-fit brightness-200"
               />
             </div>
           </div>
@@ -74,8 +74,8 @@ export default function SyncMail() {
             Sync data with cloud?
           </h2>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            You're about to sync local data with L4IT. <br />
-            This action is not reversible.
+            You're about to sync local data with <span className="text-red-700 font-bold">L4IT.</span> <br />
+            
           </p>
         </div>
 
@@ -131,7 +131,7 @@ export default function SyncMail() {
           <button className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             Cancel
           </button>
-          <Link href="https://ai.l4it.net/l4mailapp/connect.php">
+          <Link href="http://mailsync.l4it.net/l4mailapp/connect.php">
             <button
               onClick={handleConfirmSync}
               className={`px-6 py-2 rounded-md transition-colors ${
@@ -144,8 +144,11 @@ export default function SyncMail() {
               Confirm Sync
             </button>
           </Link>
+
         </div>
-      </div>
+         <p className="text-center mt-10">Powered by <span className="font-bold text-red-700">L4IT</span>  © 2025. All rights reserved.</p>
+       </div>
+    
     </div>
   );
 }
