@@ -1,6 +1,7 @@
-'use client'
-import { useState } from 'react';
-import Image from 'next/image'; 
+"use client";
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function SyncMail() {
   const [selectedProvider, setSelectedProvider] = useState(null);
@@ -9,33 +10,40 @@ export default function SyncMail() {
     {
       icon: "/outlook.png",
       title: "Connect With Outlook",
-      description: "Sync this mail with application to organize mail in Outlook",
-      provider: "outlook"
+      description:
+        "Sync this mail with application to organize mail in Outlook",
+      provider: "outlook",
+      link: "https://ai.l4it.net/l4mailapp/connect.php",
     },
     {
       icon: "/gmail.png",
       title: "Connect With Gmail",
       description: "Sync your Gmail account to manage all your emails",
-      provider: "gmail"
+      provider: "gmail",
+      link: "https://ai.l4it.net/l4mailapp/connect.php",
     },
     {
       icon: "/mail.png",
       title: "Custom Domain Email",
-      description: "Connect your business domain email (e.g., yourname@yourcompany.com)",
-      provider: "domain"
+      description:
+        "Connect your business domain email (e.g., yourname@yourcompany.com)",
+      provider: "domain",
+      link: "https://ai.l4it.net/l4mailapp/connect.php",
     },
     {
       icon: "/office.png",
       title: "Office 365 Email",
       description: "Connect your Office 365 business email account",
-      provider: "office365"
+      provider: "office365",
+      link: "https://ai.l4it.net/l4mailapp/connect.php",
     },
     {
       icon: "/yahoo.png",
       title: "Yahoo Mail",
       description: "Connect your Yahoo Mail account",
-      provider: "yahoo"
-    }
+      provider: "yahoo",
+      link: "https://ai.l4it.net/l4mailapp/connect.php",
+    },
   ];
 
   const handleServiceClick = (provider) => {
@@ -43,12 +51,7 @@ export default function SyncMail() {
   };
 
   const handleConfirmSync = () => {
-    if (selectedProvider) {
-      alert(`Syncing with ${selectedProvider}`);
-      console.log("Selected provider:", selectedProvider);
-    } else {
-      alert("Please select an email service first");
-    }
+    console.log("clicked");
   };
 
   return (
@@ -57,14 +60,13 @@ export default function SyncMail() {
         <div className="text-center mb-8">
           <div className="mb-6 flex justify-center">
             <div className="w-28 h-28 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center relative overflow-hidden">
-              <Image 
-                src="/cloud-sync.png" 
+              <Image
+                src="/cloud-sync.png"
                 alt="Sync Icon"
                 width={48}
                 height={48}
                 className="w-12 h-12"
               />
-        
             </div>
           </div>
 
@@ -79,13 +81,13 @@ export default function SyncMail() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {emailServices.map((service, index) => (
-            <div 
+            <div
               key={index}
               onClick={() => handleServiceClick(service.provider)}
               className={`border rounded-lg p-4 transition-colors cursor-pointer ${
                 selectedProvider === service.provider
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                  : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                  : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
               <div className="flex items-start space-x-4">
@@ -129,17 +131,19 @@ export default function SyncMail() {
           <button className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             Cancel
           </button>
-          <button 
-            onClick={handleConfirmSync}
-            className={`px-6 py-2 rounded-md transition-colors ${
-              selectedProvider
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-            }`}
-            disabled={!selectedProvider}
-          >
-            Confirm Sync
-          </button>
+          <Link href="https://ai.l4it.net/l4mailapp/connect.php">
+            <button
+              onClick={handleConfirmSync}
+              className={`px-6 py-2 rounded-md transition-colors ${
+                selectedProvider
+                  ? "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+              }`}
+              disabled={!selectedProvider}
+            >
+              Confirm Sync
+            </button>
+          </Link>
         </div>
       </div>
     </div>
