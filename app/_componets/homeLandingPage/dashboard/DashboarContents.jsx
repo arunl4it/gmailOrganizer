@@ -189,10 +189,10 @@ export default function DashboardContent() {
       <div className="max-w-7xl mx-auto">
         <div className=" w-full pt-10 ">
           <h1 className="text-4xl md:text-5xl text-center  font-extrabold bg-gradient-to-r  from-blue-600 to-purple-600 text-transparent bg-clip-text pb-10">
-            Task Manager by Category
+            L4IT Mail Sync Dashboard
           </h1>
           <p className=" text-center text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
-            Organize and track your tasks with clarity, grouped smartly by
+            Organize and track your Mail with clarity, grouped smartly by
             categories and priorities.
           </p>
         </div>
