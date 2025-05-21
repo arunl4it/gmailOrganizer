@@ -61,7 +61,7 @@ export default function SyncMail() {
           <div className="mb-6 flex justify-center">
             <div className="w-28 h-28 rounded-full bg-gray-100 shadow-2xl dark:bg-gray-700 flex items-center justify-center relative overflow-hidden">
               <Image
-                src="/logo.png"
+                src="/Logo.png"
                 alt="Sync Icon"
                 width={48}
                 height={48}
