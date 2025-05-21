@@ -21,7 +21,7 @@ import {
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
- 
+
 const PriorityIcon = (priority) => {
   switch (priority) {
     case "high":
@@ -107,24 +107,22 @@ export default function DashboardContent() {
   const [categoryDataMap, setCategoryDataMap] = useState({});
   const [isLoading, setIsLoading] = useState(true);
 
-   const searchParams = useSearchParams();
-
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const tokenFromURL = searchParams.get('token');
+    const tokenFromURL = searchParams.get("token");
     if (tokenFromURL) {
       setToken(tokenFromURL);
-      }
+    }
   }, [searchParams]);
-
 
   useEffect(() => {
     setIsLoading(true);
-    fetch("http://mailsync.l4it.net/l4mailapp/todoapi.php", {
+    fetch(`http://mailsync.l4it.net/l4mailapp/todoapi.php?token=${token}`, {
       method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      //   headers: {
+      //     Authorization: `Bearer ${token}`,
+      //   },
     })
       .then((response) => {
         if (!response.ok) throw new Error("Network response was not ok");
