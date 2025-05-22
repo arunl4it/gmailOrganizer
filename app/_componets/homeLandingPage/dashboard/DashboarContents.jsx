@@ -8,21 +8,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import {
-  Sparkles,
-  AlertTriangle,
-  Clock,
-  CheckCircle,
-  List,
-  Mail,
-} from "lucide-react";
+import { AlertTriangle, Clock, CheckCircle, List } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 
-const PriorityIcon = (priority) => {
+const PriorityIcon = ({ priority }) => {
   switch (priority) {
     case "high":
       return <AlertTriangle className="w-5 h-5 text-red-500" />;
@@ -35,94 +37,44 @@ const PriorityIcon = (priority) => {
   }
 };
 
-// const StatusBadge = (status) => {
-//   const statusMap = {
-//     Urgent: { color: "text-red-600", bg: "bg-red-100 dark:bg-red-900/30" },
-//     Critical: { color: "text-red-600", bg: "bg-red-100 dark:bg-red-900/30" },
-//     "In Progress": {
-//       color: "text-blue-600",
-//       bg: "bg-blue-100 dark:bg-blue-900/30",
-//     },
-//     "Pending Review": {
-//       color: "text-yellow-600",
-//       bg: "bg-yellow-100 dark:bg-yellow-900/30",
-//     },
-//     Backlog: { color: "text-gray-600", bg: "bg-gray-100 dark:bg-gray-800" },
-//     Scheduled: {
-//       color: "text-green-600",
-//       bg: "bg-green-100 dark:bg-green-900/30",
-//     },
-//   };
-
-//   return (
-//     <span
-//       className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${
-//         statusMap[status]?.bg || ""
-//       } ${statusMap[status]?.color || ""}`}
-//     >
-//       {status}
-//     </span>
-//   );
-// };
-
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.5,
+      duration: 0.4, // Slightly faster card appearance
       ease: "easeOut",
     },
   },
 };
 
-const tabContentVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
-  },
-};
-
-const buttonVariants = {
-  hover: {
-    scale: 1.05,
-    transition: {
-      duration: 0.2,
-    },
-  },
-  tap: {
-    scale: 0.98,
-  },
-};
-
 export default function DashboardContent() {
   const [emailData, setEmailData] = useState([]);
-  const [token, setToken] = useState("");
+  const [token, setToken] = useState("abc");
   const [categories, setCategories] = useState([]);
   const [categoryDataMap, setCategoryDataMap] = useState({});
   const [isLoading, setIsLoading] = useState(true);
-
   const searchParams = useSearchParams();
 
   useEffect(() => {
     const tokenFromURL = searchParams.get("token");
     if (tokenFromURL) {
       setToken(tokenFromURL);
+    } else {
+      setIsLoading(false);
     }
   }, [searchParams]);
 
   useEffect(() => {
+    if (!token) {
+      if (!searchParams.get("token")) setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     fetch(`http://mailsync.l4it.net/l4mailapp/todoapi.php?token=${token}`, {
       method: "GET",
-      //   headers: {
-      //     Authorization: `Bearer ${token}`,
-      //   },
     })
       .then((response) => {
         if (!response.ok) throw new Error("Network response was not ok");
@@ -134,32 +86,38 @@ export default function DashboardContent() {
         const newCategories = new Set();
         const categoryMap = {};
 
-        data.forEach((email) => {
-          const category = email.category || "Uncategorized";
-          newCategories.add(category);
+        if (Array.isArray(data)) {
+          data.forEach((email) => {
+            const category = email.category || "Uncategorized";
+            newCategories.add(category);
 
-          const task = {
-            id: email.id,
-            title: email.title,
-            description: email.description,
-            status: category,
-            due: email.due_at
-              ? new Date(email.due_at).toLocaleDateString()
-              : "No due date",
-            assignee: email.from_name,
-            priority: email.priority ? email.priority.toLowerCase() : "medium",
-            from_email: email.from_email,
-            action_link: email.action_link,
-          };
+            const task = {
+              id: email.id,
+              title: email.title,
+              description: email.description,
+              status: category,
+              due: email.due_at
+                ? new Date(email.due_at).toLocaleDateString()
+                : "No due date",
+              assignee: email.from_name,
+              priority: email.priority
+                ? email.priority.toLowerCase()
+                : "medium",
+              from_email: email.from_email,
+              action_link: email.action_link,
+            };
 
-          if (!categoryMap[category]) {
-            categoryMap[category] = [];
-          }
+            if (!categoryMap[category]) {
+              categoryMap[category] = [];
+            }
+            categoryMap[category].push(task);
+          });
+        } else {
+          console.warn("Fetched data is not an array:", data);
+        }
 
-          categoryMap[category].push(task);
-        });
-
-        setCategories(Array.from(newCategories).sort());
+        const sortedCategories = Array.from(newCategories).sort();
+        setCategories(sortedCategories);
         setCategoryDataMap(categoryMap);
         setIsLoading(false);
       })
@@ -167,124 +125,57 @@ export default function DashboardContent() {
         console.error("Fetch error:", error);
         setIsLoading(false);
       });
-  }, [token]);
+  }, [token, searchParams]);
 
-  console.log(emailData);
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case "high":
-        return "red";
-      case "medium":
-        return "yellow";
-      case "low":
-        return "green";
-      default:
-        return "blue";
-    }
-  };
+  console.log(categoryDataMap);
+  
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className=" w-full pt-10 ">
-          <h1 className="text-4xl md:text-5xl text-center  font-extrabold bg-gradient-to-r  from-blue-600 to-purple-600 text-transparent bg-clip-text pb-10">
-            L4IT Mail Sync Dashboard
-          </h1>
-          <p className=" text-center text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
-            Organize and track your Mail with clarity, grouped smartly by
-            categories and priorities.
-          </p>
-        </div>
-        {/* Header with animation */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
-          <div className="flex items-center gap-3">
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-center mb-12"
-            >
-              <div className="flex justify-center items-center mb-4">
-                <motion.div
-                  animate={{
-                    rotate: [0, 10, -10, 0],
-                    scale: [1, 1.2, 1],
-                  }}
-                  transition={{
-                    delay: 0.5,
-                    duration: 0.8,
-                    ease: "easeInOut",
-                  }}
-                >
-                  {/* <Sparkles className="w-8 h-8 text-yellow-500" /> */}
-                </motion.div>
-              </div>
-            </motion.div>
-          </div>
-          {/* <motion.p
-            className="text-gray-600 dark:text-gray-400 mt-2 mb-10"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            Organize and track tasks by their categories
-          </motion.p> */}
-        </motion.div>
+    <div className="min-h-screen bg-[#eeeeee] dark:via-gray-800 dark:to-gray-700 p-4 md:p-6 flex flex-col">
+     
 
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
-        ) : (
-          <Tabs defaultValue={categories[0] || "all"} className="w-full">
+      {/* Kanban-style Columns Section */}
+      <div className="flex flex-1 overflow-x-auto space-x-4 md:space-x-6 pb-4 custom-scrollbar">
+        {categories.length > 0 ? (
+          categories.map((category, index) => (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
+              key={category}
+              className="bg-white px-20  h-screen dark:bg-slate-800/60 p-13 md:p-4 rounded-xl shadow-lg min-w-[300px] sm:min-w-[320px] md:min-w-[360px] flex flex-col flex-shrink-0"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{
+                duration: 0.5,
+                delay: index * 0.05,
+                ease: "easeOut",
+              }}
             >
-              <TabsList className="grid w-full grid-cols-4 bg-gray-100  p-1 rounded-xl gap-1 h-auto">
-                {categories.map((category, index) => (
-                  <motion.div
-                    key={category}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.7 + index * 0.1 }}
+              {/* Column Header */}
+              <div className="sticky top-0   dark:bg-slate-800/60 pt-1 pb-2.5 md:pb-3.5 z-10 border-b  border-slate-300 dark:border-slate-700 mb-3 md:mb-4 ">
+                <h2 className="text-lg md:text-xl font-semibold text-gray-800 dark:text-gray-100 px-1 flex justify-between  pr-10">
+                  <span className="text-black font-bold ml-5  ">
+                    {category}
+                  </span>
+                  <Badge
+                    variant="secondary"
+                    className="px-2 py-0.5 text-xs md:text-sm bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200"
                   >
-                    <TabsTrigger
-                      value={category}
-                      className="data-[state=active]:shadow-sm rounded-lg py-3 transition-all duration-300 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                    >
-                      <div className="flex w-40 items-center gap-2">
-                        <List className="w-5 h-5 text-blue-500" />
-                        <p className="truncate max-w-xs">{category}</p>
-                        <Badge
-                          variant="secondary"
-                          className="px-2 py-0.5 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-                        >
-                          {categoryDataMap[category]?.length || 0}
-                        </Badge>
-                      </div>
-                    </TabsTrigger>
-                  </motion.div>
-                ))}
-              </TabsList>
-            </motion.div>
+                    {categoryDataMap[category]?.length || 0}
+                  </Badge>
+                </h2>
+              </div>
 
-            {categories.map((category) => (
-              <TabsContent key={category} value={category} className="mt-6">
-                <motion.div
-                  variants={tabContentVariants}
-                  initial="hidden"
-                  animate="visible"
-                  className="space-y-5"
-                >
-                  {categoryDataMap[category]?.map((task) => {
-                    const priorityColor = getPriorityColor(task.priority);
+              {/* Task List Container - This is where vertical scroll happens */}
+              <div className="flex-1 lg:w-100   space-y-3 scroll-my-2.5 md:space-y-4 overflow-y-auto pr-1 custom-scrollbar">
+                {categoryDataMap[category]?.length > 0 ? (
+                  categoryDataMap[category].map((task, taskIndex) => {
                     const borderColor =
                       {
                         high: "border-red-500 dark:border-red-600",
@@ -292,89 +183,209 @@ export default function DashboardContent() {
                         low: "border-green-500 dark:border-green-600",
                       }[task.priority] ||
                       "border-blue-500 dark:border-blue-600";
-
                     const textColor =
                       {
-                        high: "text-red-600 dark:text-red-400",
-                        medium: "text-yellow-600 dark:text-yellow-400",
-                        low: "text-green-600 dark:text-green-400",
-                      }[task.priority] || "text-blue-600 dark:text-blue-400";
+                        high: "text-red-700 dark:text-red-400",
+                        medium: "text-yellow-700 dark:text-yellow-400",
+                        low: "text-green-700 dark:text-green-400",
+                      }[task.priority] || "text-blue-700 dark:text-blue-400";
 
                     return (
                       <motion.div
                         key={task.id}
                         variants={cardVariants}
-                        whileHover={{ y: -5 }}
+                        initial="hidden"
+                        animate="visible"
+                        transition={{ delay: taskIndex * 0.03 }}
+                        whileHover={{
+                          y: -5,
+                          boxShadow:
+                            "0 12px 20px -3px rgba(0,0,0,0.12), 0 5px 8px -3px rgba(0,0,0,0.08)",
+                        }}
+                        className="bg-white dark:bg-gray-800/80 rounded-lg transition-all duration-300 hover:bg-slate-50 dark:hover:bg-gray-700/70"
                       >
                         <Card
-                          className={`border-l-4 ${borderColor} shadow-lg hover:shadow-xl transition-shadow duration-300 group`}
+                          className={`border-l-4 ${borderColor} shadow-md group w-full bg-transparent`}
                         >
-                          <CardHeader>
-                            <div className="flex justify-between items-start gap-3">
-                              <CardTitle
-                                className={`text-lg font-bold ${textColor}`}
-                              >
+                          <CardHeader className="pb-2.5 pt-3.5 px-3.5 md:px-4">
+                            <div className="flex justify-between items-start gap-2">
+                              <CardTitle className="text-base md:text-lg lg:line-clamp-3  leading-tight font-bold">
                                 {task.title}
                               </CardTitle>
                             </div>
-                            <CardDescription className="text-gray-600 dark:text-gray-400">
-                              {task.description}
-                            </CardDescription>
+                            {task.description && (
+                              <CardDescription className="text-gray-600 dark:text-gray-400 mt-1.5 text-xs md:text-sm leading-snug">
+                                {task.description.length > 90
+                                  ? task.description.substring(0, 87) + "..."
+                                  : task.description}
+                              </CardDescription>
+                            )}
                           </CardHeader>
-                          <CardContent>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
+                          <CardContent className="text-xs md:text-sm px-3.5 md:px-4 pb-3 pt-1.5">
+                            <div className="grid grid-cols-2 gap-2 md:gap-3">
                               <div>
                                 <p className="text-gray-500 dark:text-gray-400">
                                   Due
                                 </p>
-                                <p className="font-medium">{task.due}</p>
+                                <p className="font-medium text-gray-700 dark:text-gray-300">
+                                  {task.due}
+                                </p>
                               </div>
                               <div>
                                 <p className="text-gray-500 dark:text-gray-400">
                                   From
                                 </p>
-                                <p className="font-medium">{task.assignee}</p>
+                                <p
+                                  className="font-medium text-gray-700 dark:text-gray-300 truncate"
+                                  title={task.assignee}
+                                >
+                                  {task.assignee}
+                                </p>
                               </div>
                             </div>
+                            {task.from_email && (
+                              <div className="mt-2 md:mt-2.5">
+                                <p className="text-gray-500 dark:text-gray-400">
+                                  Email
+                                </p>
+                                <p
+                                  className="font-medium text-gray-700 dark:text-gray-300 truncate"
+                                  title={task.from_email}
+                                >
+                                  {task.from_email}
+                                </p>
+                              </div>
+                            )}
                           </CardContent>
-                          <CardFooter className="flex justify-end gap-2">
-                            <motion.div
-                              whileHover="hover"
-                              whileTap="tap"
-                              variants={buttonVariants}
-                            >
-                              <Button
-                                variant="outline"
-                                className={`border-${priorityColor}-200 text-${priorityColor}-600 hover:bg-${priorityColor}-50 dark:border-${priorityColor}-900 dark:text-${priorityColor}-400 dark:hover:bg-${priorityColor}-900/30`}
-                                onClick={() =>
-                                  window.open(task.action_link, "_blank")
-                                }
-                              >
-                                View Email
-                              </Button>
-                            </motion.div>
-                            <motion.div
-                              whileHover="hover"
-                              whileTap="tap"
-                              variants={buttonVariants}
-                            >
-                              <Button
-                                className={`bg-${priorityColor}-600 hover:bg-${priorityColor}-700 text-white shadow-md shadow-${priorityColor}-200 dark:shadow-${priorityColor}-900/50`}
-                              >
-                                Mark as Done
-                              </Button>
-                            </motion.div>
+
+                          <CardFooter className="flex justify-end pt-2 pb-3 px-3.5 md:px-4">
+                            <Drawer direction="right">
+                              <DrawerTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-xs md:text-sm border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
+                                >
+                                  View Action
+                                </Button>
+                              </DrawerTrigger>
+                              <DrawerContent>
+                                <DrawerHeader>
+                                  <DrawerTitle>{task?.title}</DrawerTitle>
+                                  <DrawerDescription>
+                                    {task?.description}
+                                  </DrawerDescription>
+                                </DrawerHeader>
+                                <DrawerContent className="p-4 ">
+                                  <div className="space-y-4">
+                                  <div>
+                                       
+                                      <p className="font-bold ">{task?.title}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-sm text-gray-500">
+                                        Due Date
+                                      </p>
+                                      <p>{task?.due}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-sm text-gray-500">
+                                        Description
+                                      </p>
+                                      <p>{task?.description}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-sm text-gray-500">
+                                        From
+                                      </p>
+                                      <p>{task?.assignee}</p>
+                                    </div>
+                                    {task.from_email && (
+                                      <div>
+                                        <p className="text-sm text-gray-500">
+                                          Email
+                                        </p>
+                                        <p>{task?.from_email}</p>
+                                      </div>
+                                    )}
+
+                                    <DrawerTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="text-xs md:text-md mt-6 p-4 shadow bg-red-500 font-semibold   text-white hover:bg-red-800 hover:text-white"
+                                      >
+                                        Close
+                                      </Button>
+                                    </DrawerTrigger>
+                                  </div>
+                                </DrawerContent>
+                                <DrawerFooter>
+                                  <DrawerClose asChild>
+                                    <Button variant="outline">Close</Button>
+                                  </DrawerClose>
+                                </DrawerFooter>
+                              </DrawerContent>
+                            </Drawer>
                           </CardFooter>
                         </Card>
                       </motion.div>
                     );
-                  })}
-                </motion.div>
-              </TabsContent>
-            ))}
-          </Tabs>
+                  })
+                ) : (
+                  <div className="flex items-center justify-center h-full min-h-[100px]">
+                    <p className="text-gray-500 dark:text-gray-400 text-center py-4 text-sm md:text-base italic">
+                      No tasks in this category.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          ))
+        ) : (
+          <div className="w-full text-center py-10 flex-1 flex items-center justify-center">
+            <p className="text-gray-500 dark:text-gray-400 text-lg md:text-xl">
+              {token
+                ? "No categories found or data is still loading."
+                : "No token provided. Please sync your mail service."}
+            </p>
+          </div>
         )}
       </div>
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px; /* Slimmer scrollbar */
+          height: 6px; /* Slimmer scrollbar */
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+          margin-top: 5px; /* Add some margin if header is sticky */
+          margin-bottom: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #a0aec0; /* gray-500 */
+          border-radius: 10px;
+          border: 1px solid transparent; /* Optional: for a slight padding effect */
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #718096; /* gray-600 */
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #4a5568; /* gray-600 dark */
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #2d3748; /* gray-700 dark */
+        }
+
+        /* For Firefox */
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: #a0aec0 transparent; /* thumb and track */
+        }
+        .dark .custom-scrollbar {
+          scrollbar-color: #4a5568 transparent; /* thumb and track for dark mode */
+        }
+      `}</style>
     </div>
   );
 }

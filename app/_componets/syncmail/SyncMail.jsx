@@ -55,7 +55,7 @@ export default function SyncMail() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="min-h-screen flex  justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <div className="max-w-4xl w-full bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden p-8">
         <div className="text-center mb-8">
           <div className="mb-6 flex justify-center">
