@@ -135,12 +135,11 @@ export default function DashboardContent() {
     );
   }
 
-  console.log(categoryDataMap);
-  
+  // console.log(categoryDataMap);
 
   return (
-    <div className="min-h-screen bg-[#eeeeee] dark:via-gray-800 dark:to-gray-700 p-4 md:p-6 flex flex-col">
-     
+    <div className="min-h-screen bg-[#eeeeee] dark:via-gray-800 dark:to-gray-700 p-4 md:p-6 flex flex-col ">
+    
 
       {/* Kanban-style Columns Section */}
       <div className="flex flex-1 overflow-x-auto space-x-4 md:space-x-6 pb-4 custom-scrollbar">
@@ -278,9 +277,10 @@ export default function DashboardContent() {
                                 </DrawerHeader>
                                 <DrawerContent className="p-4 ">
                                   <div className="space-y-4">
-                                  <div>
-                                       
-                                      <p className="font-bold ">{task?.title}</p>
+                                    <div>
+                                      <p className="font-bold ">
+                                        {task?.title}
+                                      </p>
                                     </div>
                                     <div>
                                       <p className="text-sm text-gray-500">
