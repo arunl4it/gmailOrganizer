@@ -16,10 +16,11 @@ export default function RedirectComponent(){
       if (tokenFromURL) {
         setToken(tokenFromURL);
         Cookies.set("authToken", tokenFromURL, {
-          expires: 1,
-          secure: true,
-          sameSite: "strict",
-        });
+            expires: 7,       
+            secure: false,   
+            sameSite: "Lax",   
+            path: "/",         
+          });
       } else {
         // Handle case where token is missing
         //   router.push("/error?message=Missing token");
