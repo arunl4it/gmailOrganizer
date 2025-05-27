@@ -44,21 +44,20 @@ const cardVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.4, // Slightly faster card appearance
+      duration: 0.4,
       ease: "easeOut",
     },
   },
 };
 
 export default function DashboardContent() {
-  const [emailData, setEmailData] = useState([]);
+  const [emailData, setEmailData] = useState({ message: [] });
   const [token, setToken] = useState("");
   const [categories, setCategories] = useState([]);
   const [categoryDataMap, setCategoryDataMap] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [searchParams] = useSearchParams();
 
-  // Set token from cookie (only runs once)
   useEffect(() => {
     const authTokenFromCookie = Cookies.get("authToken");
 
@@ -69,7 +68,6 @@ export default function DashboardContent() {
     }
   }, []);
 
-  // Fetch data when token is available
   useEffect(() => {
     if (!token) {
       if (!Cookies.get("authToken")) setIsLoading(false);
@@ -82,7 +80,6 @@ export default function DashboardContent() {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
-        // "Content-Type": "application/json", // Uncomment if backend expects it
       },
     })
       .then((response) => {
@@ -95,8 +92,8 @@ export default function DashboardContent() {
         const newCategories = new Set();
         const categoryMap = {};
 
-        if (Array.isArray(data)) {
-          data.forEach((email) => {
+        if (Array.isArray(data.message)) {
+          data.message.forEach((email) => {
             const category = email.category || "Uncategorized";
             newCategories.add(category);
 
@@ -105,9 +102,9 @@ export default function DashboardContent() {
               title: email.title,
               description: email.description,
               status: category,
-              due: email.due_at
-                ? new Date(email.due_at).toLocaleDateString()
-                : "No due date",
+              due: email.due_at === "NA" || !email.due_at 
+                ? "No due date" 
+                : new Date(email.due_at).toLocaleDateString(),
               assignee: email.from_name,
               priority: email.priority
                 ? email.priority.toLowerCase()
@@ -122,7 +119,7 @@ export default function DashboardContent() {
             categoryMap[category].push(task);
           });
         } else {
-          console.warn("Fetched data is not an array:", data);
+          console.warn("Fetched data.message is not an array:", data);
         }
 
         const sortedCategories = Array.from(newCategories).sort();
@@ -144,17 +141,16 @@ export default function DashboardContent() {
       </div>
     );
   }
-  // console.log(categoryDataMap);
 
   return (
-    <div className="min-h-screen bg-[#eeeeee] dark:via-gray-800 dark:to-gray-700 p-4 md:p-6 flex flex-col ">
+    <div className="min-h-screen bg-[#eeeeee] dark:via-gray-800 dark:to-gray-700 p-4 md:p-6 flex flex-col">
       {/* Kanban-style Columns Section */}
       <div className="flex flex-1 overflow-x-auto space-x-4 md:space-x-6 pb-4 custom-scrollbar">
         {categories.length > 0 ? (
           categories.map((category, index) => (
             <motion.div
               key={category}
-              className="bg-white px-20  h-screen dark:bg-slate-800/60 p-13 md:p-4 rounded-xl shadow-lg min-w-[300px] sm:min-w-[320px] md:min-w-[360px] flex flex-col flex-shrink-0"
+              className="bg-white px-20 h-screen dark:bg-slate-800/60 p-13 md:p-4 rounded-xl shadow-lg min-w-[300px] sm:min-w-[320px] md:min-w-[360px] flex flex-col flex-shrink-0"
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{
@@ -164,9 +160,9 @@ export default function DashboardContent() {
               }}
             >
               {/* Column Header */}
-              <div className="sticky top-0   dark:bg-slate-800/60 pt-1 pb-2.5 md:pb-3.5 z-10 border-b  border-slate-300 dark:border-slate-700 mb-3 md:mb-4 ">
-                <h2 className="text-lg md:text-xl font-semibold text-gray-800 dark:text-gray-100 px-1 flex justify-between  pr-10">
-                  <span className="text-black font-bold ml-5  ">
+              <div className="sticky top-0 dark:bg-slate-800/60 pt-1 pb-2.5 md:pb-3.5 z-10 border-b border-slate-300 dark:border-slate-700 mb-3 md:mb-4">
+                <h2 className="text-lg md:text-xl font-semibold text-gray-800 dark:text-gray-100 px-1 flex justify-between pr-10">
+                  <span className="text-black font-bold ml-5">
                     {category}
                   </span>
                   <Badge
@@ -178,8 +174,8 @@ export default function DashboardContent() {
                 </h2>
               </div>
 
-              {/* Task List Container - This is where vertical scroll happens */}
-              <div className="flex-1 lg:w-100   space-y-3 scroll-my-2.5 md:space-y-4 overflow-y-auto pr-1 custom-scrollbar">
+              {/* Task List Container */}
+              <div className="flex-1 lg:w-100 space-y-3 scroll-my-2.5 md:space-y-4 overflow-y-auto pr-1 custom-scrollbar">
                 {categoryDataMap[category]?.length > 0 ? (
                   categoryDataMap[category].map((task, taskIndex) => {
                     const borderColor =
@@ -215,7 +211,7 @@ export default function DashboardContent() {
                         >
                           <CardHeader className="pb-2.5 pt-3.5 px-3.5 md:px-4">
                             <div className="flex justify-between items-start gap-2">
-                              <CardTitle className="text-base md:text-lg lg:line-clamp-3  leading-tight font-bold">
+                              <CardTitle className="text-base md:text-lg lg:line-clamp-3 leading-tight font-bold">
                                 {task.title}
                               </CardTitle>
                             </div>
@@ -282,10 +278,10 @@ export default function DashboardContent() {
                                     {task?.description}
                                   </DrawerDescription>
                                 </DrawerHeader>
-                                <DrawerContent className="p-4 ">
+                                <DrawerContent className="p-4">
                                   <div className="space-y-4">
                                     <div>
-                                      <p className="font-bold ">
+                                      <p className="font-bold">
                                         {task?.title}
                                       </p>
                                     </div>
@@ -315,12 +311,27 @@ export default function DashboardContent() {
                                         <p>{task?.from_email}</p>
                                       </div>
                                     )}
+                                    {task.action_link !== "NA" && (
+                                      <div>
+                                        <p className="text-sm text-gray-500">
+                                          Action Link
+                                        </p>
+                                        <a 
+                                          href={task.action_link} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="text-blue-500 hover:underline"
+                                        >
+                                          {task.action_link}
+                                        </a>
+                                      </div>
+                                    )}
 
                                     <DrawerTrigger asChild>
                                       <Button
                                         variant="outline"
                                         size="sm"
-                                        className="text-xs md:text-md mt-6 p-4 shadow bg-red-500 font-semibold   text-white hover:bg-red-800 hover:text-white"
+                                        className="text-xs md:text-md mt-6 p-4 shadow bg-red-500 font-semibold text-white hover:bg-red-800 hover:text-white"
                                       >
                                         Close
                                       </Button>
@@ -361,36 +372,34 @@ export default function DashboardContent() {
       </div>
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar {
-          width: 6px; /* Slimmer scrollbar */
-          height: 6px; /* Slimmer scrollbar */
+          width: 6px;
+          height: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
           background: transparent;
-          margin-top: 5px; /* Add some margin if header is sticky */
+          margin-top: 5px;
           margin-bottom: 5px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #a0aec0; /* gray-500 */
+          background: #a0aec0;
           border-radius: 10px;
-          border: 1px solid transparent; /* Optional: for a slight padding effect */
+          border: 1px solid transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #718096; /* gray-600 */
+          background: #718096;
         }
         .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #4a5568; /* gray-600 dark */
+          background: #4a5568;
         }
         .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #2d3748; /* gray-700 dark */
+          background: #2d3748;
         }
-
-        /* For Firefox */
         .custom-scrollbar {
           scrollbar-width: thin;
-          scrollbar-color: #a0aec0 transparent; /* thumb and track */
+          scrollbar-color: #a0aec0 transparent;
         }
         .dark .custom-scrollbar {
-          scrollbar-color: #4a5568 transparent; /* thumb and track for dark mode */
+          scrollbar-color: #4a5568 transparent;
         }
       `}</style>
     </div>
