@@ -74,8 +74,8 @@ export default function SyncMail() {
             Sync data with cloud?
           </h2>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            You're about to sync local data with <span className="text-red-700 font-bold">L4IT.</span> <br />
-            
+            You're about to sync local data with{" "}
+            <span className="text-red-700 font-bold">L4IT.</span> <br />
           </p>
         </div>
 
@@ -131,7 +131,7 @@ export default function SyncMail() {
           <button className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             Cancel
           </button>
-          <Link href="http://mailsync.l4it.net/l4mailapp/connect.php">
+          <Link href="http://mailsync.l4it.net/api/auth">
             <button
               onClick={handleConfirmSync}
               className={`px-6 py-2 rounded-md transition-colors ${
@@ -144,11 +144,12 @@ export default function SyncMail() {
               Confirm Sync
             </button>
           </Link>
-
         </div>
-         <p className="text-center mt-10">Powered by <span className="font-bold text-red-700">L4IT</span>  © 2025. All rights reserved.</p>
-       </div>
-    
+        <p className="text-center mt-10">
+          Powered by <span className="font-bold text-red-700">L4IT</span> ©
+          2025. All rights reserved.
+        </p>
+      </div>
     </div>
   );
 }

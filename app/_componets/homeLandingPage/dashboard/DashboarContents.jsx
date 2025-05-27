@@ -23,6 +23,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import Cookies from "js-cookie";
 
 const PriorityIcon = ({ priority }) => {
   switch (priority) {
@@ -51,30 +52,38 @@ const cardVariants = {
 
 export default function DashboardContent() {
   const [emailData, setEmailData] = useState([]);
-  const [token, setToken] = useState("abc");
+  const [token, setToken] = useState("");
   const [categories, setCategories] = useState([]);
   const [categoryDataMap, setCategoryDataMap] = useState({});
   const [isLoading, setIsLoading] = useState(true);
-  const searchParams = useSearchParams();
+  const [searchParams] = useSearchParams();
 
+  // Set token from cookie (only runs once)
   useEffect(() => {
-    const tokenFromURL = searchParams.get("token");
-    if (tokenFromURL) {
-      setToken(tokenFromURL);
+    const authTokenFromCookie = Cookies.get("authToken");
+
+    if (authTokenFromCookie) {
+      setToken(authTokenFromCookie);
     } else {
       setIsLoading(false);
     }
-  }, [searchParams]);
+  }, []);
 
+  // Fetch data when token is available
   useEffect(() => {
     if (!token) {
-      if (!searchParams.get("token")) setIsLoading(false);
+      if (!Cookies.get("authToken")) setIsLoading(false);
       return;
     }
 
     setIsLoading(true);
-    fetch(`http://mailsync.l4it.net/l4mailapp/todoapi.php?token=${token}`, {
+
+    fetch("http://mailsync.l4it.net/api/allmessages", {
       method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        // "Content-Type": "application/json", // Uncomment if backend expects it
+      },
     })
       .then((response) => {
         if (!response.ok) throw new Error("Network response was not ok");
@@ -125,8 +134,9 @@ export default function DashboardContent() {
         console.error("Fetch error:", error);
         setIsLoading(false);
       });
-  }, [token, searchParams]);
+  }, [token]);
 
+  // Loading screen
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700">
@@ -134,13 +144,10 @@ export default function DashboardContent() {
       </div>
     );
   }
-
   // console.log(categoryDataMap);
 
   return (
     <div className="min-h-screen bg-[#eeeeee] dark:via-gray-800 dark:to-gray-700 p-4 md:p-6 flex flex-col ">
-    
-
       {/* Kanban-style Columns Section */}
       <div className="flex flex-1 overflow-x-auto space-x-4 md:space-x-6 pb-4 custom-scrollbar">
         {categories.length > 0 ? (
