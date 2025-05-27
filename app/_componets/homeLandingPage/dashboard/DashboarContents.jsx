@@ -79,7 +79,7 @@ export default function DashboardContent() {
     setIsLoading(true);
 
     fetch("http://mailsync.l4it.net/api/allmessages", {
-      method: "GET",
+      method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
         // "Content-Type": "application/json", // Uncomment if backend expects it
